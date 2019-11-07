@@ -10,15 +10,29 @@ document.addEventListener('DOMContentLoaded', () => {
 const text = (() => {
   let items;
   let input;
+  let delbutton;
+  let change;
+
+
+
 
   function init(_form, _items) {
     items = _items;
     input = _form.querySelector('.form input');
+    delbutton = document.getElementsByClassName('item__button');
+    change = document.getElementsByClassName('item__text');
 
     _form.addEventListener('submit', formHandler);
 
     items.addEventListener('change', finish);
 
+    for(let i = 0; i < delbutton.length; i++){
+      delbutton[i].addEventListener('click', deleteItem);
+    }
+
+    for(let i = 0; i < change.length; i++){
+      change[i].addEventListener('click', edit);
+    }
 
 
 
@@ -30,11 +44,9 @@ const text = (() => {
   function formHandler(e) {
     e.preventDefault();
 
-    console.log('halló heimur');
     const value = input.value;
     add(value);
-
-
+    input.value = '';
   }
 
   // event handler fyrir það að klára færslu
@@ -52,22 +64,51 @@ const text = (() => {
 
   // event handler fyrir það að breyta færslu
   function edit(e) {
-    e.preventDefault();
+    const newInput = document.createElement('input');
+    newInput.classList.add('item__text');
+
+    var sametext = this.firstChild.textContent;
+    newInput.value = sametext;
+
+    this.parentNode.insertBefore(newInput, this.parentNode.children[1]);
+
+    this.parentNode.removeChild(this.parentNode.children[2]);
+    newInput.focus();
+
+    newInput.classList.add('item__edit');
+
+    newInput.addEventListener('keydown', commit, false);
+
+
   }
 
   // event handler fyrir það að klára að breyta færslu
   function commit(e) {
-    e.preventDefault();
+    var key = e.wich || e.keyCode;
+    if (key === ENTER_KEYCODE){
+      const newspanElement = el('span', 'item__text', edit);
+      var newtextnode = document.createTextNode(this.value);
+      newspanElement.appendChild(newtextnode);
+
+      this.parentNode.insertBefore(newspanElement, this.parentNode.children[1]);
+      this.parentNode.removeChild(this.parentNode.children[2]);
+    } else {
+      return;
+    }
   }
 
   // fall sem sér um að bæta við nýju item
   function add(value) {
+
+    if (value.trim() === '' || value === null ){
+      return;
+    }
     const item = document.createElement('li');
     item.classList.add('item');
 
-    const inputElement = el('checkbox', 'item__checkbox', finish);
+    const inputElement = el('input', 'item__checkbox', finish);
     inputElement.setAttribute('type', 'checkbox');
-    const spanElement = el('span', 'item__text', commit);
+    const spanElement = el('span', 'item__text', edit);
     var textnode = document.createTextNode(value);
     spanElement.appendChild(textnode);
     const buttonElement = el('button', 'item__button', deleteItem);
@@ -85,7 +126,7 @@ const text = (() => {
 
   // event handler til að eyða færslu
   function deleteItem(e) {
-
+    this.parentNode.parentNode.removeChild(this.parentNode);
   }
 
   // hjálparfall til að útbúa element
